@@ -78,12 +78,26 @@ fastify.get('/callback', async function (request, reply) {
         spotifyApi.setAccessToken(data.body['access_token']);
         spotifyApi.setRefreshToken(data.body['refresh_token']);
 
-        reply.redirect('/my-name');
+        // Fetch user's profile information and top tracks
+        const [me, topTracksData] = await Promise.all([
+            spotifyApi.getMe(),
+            spotifyApi.getMyTopTracks()
+        ]);
+
+        let params = {
+            name: me.body.display_name, // User's display name
+            topTracks: topTracksData.body.items, // User's top tracks
+            seo: seo // SEO data
+        };
+
+        // Render index.hbs with user data and top tracks
+        reply.view('/src/pages/index.hbs', params);
     } catch (error) {
-        console.error('Authentication error:', error);
-        reply.status(500).send('Authentication error');
+        console.error('Authentication or data fetch error:', error);
+        reply.status(500).send('Error during authentication or data fetching');
     }
 });
+
 
 // Route to display top tracks
 // Route to display top tracks
