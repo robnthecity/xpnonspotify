@@ -51,11 +51,11 @@ fastify.get('/callback', async (req, reply) => {
       spotifyApi.getMyTopTracks()
     ]);
 
-    return reply.view('/src/pages/index.hbs', {
-      name: me.body.display_name,
-      topTracks: topTracks.body.items,
-      seo
-    });
+return reply.view('index.hbs', {
+  name: me.body.display_name,
+  topTracks: topTracks.body.items,
+  seo
+});
   } catch (error) {
     console.error(error);
     return reply.status(500).send('Authentication error');
