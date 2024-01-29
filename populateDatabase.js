@@ -1,3 +1,4 @@
+// to run this type 'node populateDatabase.js' in the glitch terminal
 const sqlite3 = require('sqlite3').verbose();
 const fetch = require('node-fetch');
 const path = require('path');
