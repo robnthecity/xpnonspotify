@@ -1,7 +1,7 @@
 // Require the dotenv package to load environment variables
 require('dotenv').config();
 
-// Access your Spotify API credentials
+// Access your Spotify API credentials this is a test
 const spotifyClientId = process.env.SPOTIFY_CLIENT_ID;
 const spotifyClientSecret = process.env.SPOTIFY_CLIENT_SECRET;
 
