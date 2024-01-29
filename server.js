@@ -78,7 +78,8 @@ async function fetchSpotifyData(api) {
 // Spotify login route
 fastify.get('/login', function (request, reply) {
   const scopes = ['user-read-private', 'user-read-email', 'user-top-read'];
-  const authorizeURL = createAuthorizeURL(spotifyClientId, scopes);
+  const authorizeURL = createAuthorizeURL(spotifyClientId, scopes, 'https://xpnplaylist.glitch.me/callback');
+
   console.log("Spotify Authorization URL:", authorizeURL); // Log the authorization URL
 
   reply.redirect(authorizeURL);
@@ -102,7 +103,8 @@ fastify.get('/callback', async function (request, reply) {
 
     // Fetch user's profile information and top tracks using the new function
     const spotifyData = await fetchSpotifyData(spotifyApi);
-
+    // Log the spotifyData to inspect its structure
+    console.log("Spotify Data:", spotifyData);
     // Render index.hbs with user data and top tracks
     reply.view('/src/pages/index.hbs', {
       name: spotifyData.name,

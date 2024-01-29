@@ -1,9 +1,12 @@
 const SpotifyWebApi = require('spotify-web-api-node');
 
 // Function to create Spotify authorization URL
-function createAuthorizeURL(clientId, scopes) {
-  const spotifyApi = new SpotifyWebApi({ clientId });
-  const authorizeURL = spotifyApi.createAuthorizeURL(scopes,null);
+function createAuthorizeURL(clientId, scopes, redirectUri) {
+  const spotifyApi = new SpotifyWebApi({
+    clientId: clientId,
+    redirectUri: redirectUri
+  });
+  const authorizeURL = spotifyApi.createAuthorizeURL(scopes);
   return authorizeURL;
 }
 
