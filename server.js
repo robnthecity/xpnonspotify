@@ -86,16 +86,17 @@ fastify.get('/callback', async function (request, reply) {
 });
 
 // Route to display top tracks
+// Route to display top tracks
 fastify.get('/top-tracks', async function (request, reply) {
-    try {
-        const topTracks = await spotifyApi.getMyTopTracks();
-        let tracks = topTracks.body.items;
+  try {
+      const topTracks = await spotifyApi.getMyTopTracks();
+      let tracks = topTracks.body.items;
 
-        reply.view('top-tracks.hbs', { tracks });
-    } catch (error) {
-        console.error('Error fetching top tracks:', error);
-        reply.status(500).send('Error fetching or rendering top tracks');
-    }
+      reply.view('nametracks.hbs', { tracks }); // Pass the "tracks" data to the template
+  } catch (error) {
+      console.error('Error fetching top tracks:', error);
+      reply.status(500).send('Error fetching or rendering top tracks');
+  }
 });
 
 
