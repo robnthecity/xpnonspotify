@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Songs by Date</title>
+</head>
+<body>
+    <form id="date-form">
+        <label for="date">Enter Date:</label>
+        <input type="date" id="date" name="date" required>
+        <button type="submit">Get Songs</button>
+    </form>
+    <div id="songs-list"></div>
+
+    <script>
+        document.getElementById('date-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const date = document.getElementById('date').value;
+            fetch('/get-songs', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: 'date=' + encodeURIComponent(date)
+            })
+            .then(response => response.json())
+            .then(data => {
+                const list = document.getElementById('songs-list');
+                list.innerHTML = ''; // Clear existing list
+                data.forEach(song => {
+                    const item = document.createElement('div');
+                    item.innerHTML = `Artist: ${song.artist}, Song: ${song.song}, Album: ${song.album} <br>
+                                      <img src="${song.image_url}" alt="${song.song}"> <br>
+                                      <audio controls src="${song.stream_preview_url}"></audio>`;
+                    list.appendChild(item);
+                });
+            })
+            .catch(error => console.error('Error:', error));
+        });
+    </script>
+</body>
+</html>
