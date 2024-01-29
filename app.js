@@ -8,7 +8,7 @@ const dbPath = path.resolve(__dirname, 'xpn_playlists.db');
 const app = express();
 const db = new sqlite3.Database(dbPath, sqlite3.OPEN_READWRITE, (err) => {
     if (err) return console.error(err.message);
-    console.log('Connected to the xpn_playlists.db SQlite database.');
+    console.log('Connected to the xpn_playlists.db SQLite database.');
 });
 
 app.use(express.static('public')); // For serving static files
@@ -23,7 +23,12 @@ app.get('/songs-by-date', (req, res) => {
 app.post('/get-songs', (req, res) => {
     const date = req.body.date; // Assuming input name is 'date'
     // Query database and send results
-    const query = `SELECT * FROM songs WHERE play_date = ?`;
+    const query = `
+        SELECT s.artist, s.song, s.album, s.image_url, s.stream_preview_url
+        FROM songs s
+        JOIN play_history ph ON s.id = ph.song_id
+        WHERE ph.play_date = ?
+    `;
     db.all(query, [date], (err, rows) => {
         if (err) {
             res.status(400).send("Error retrieving songs");
