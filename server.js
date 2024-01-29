@@ -1,152 +1,79 @@
-// Require the dotenv package to load environment variables
 require('dotenv').config();
-
-// Access your Spotify API credentials this is a test
-const spotifyClientId = process.env.SPOTIFY_CLIENT_ID;
-const spotifyClientSecret = process.env.SPOTIFY_CLIENT_SECRET;
-
-// Require necessary libraries and modules
 const path = require('path');
-const fastify = require('fastify')({
-  logger: false,
-});
-const { createAuthorizeURL, authorizationCodeGrant, setAccessToken, setRefreshToken, getMe, getMyTopTracks } = require('./spotify-functions'); // Create a separate module for Spotify functions
+const fastify = require('fastify')({ logger: true });
+const SpotifyWebApi = require('spotify-web-api-node');
 
-// Setup static file serving
+// Initialize Spotify API client
+const spotifyApi = new SpotifyWebApi({
+  clientId: process.env.SPOTIFY_CLIENT_ID,
+  clientSecret: process.env.SPOTIFY_CLIENT_SECRET,
+  redirectUri: 'https://xpnplaylist.glitch.me/callback'
+});
+
+// Fastify plugin setup
 fastify.register(require('@fastify/static'), {
   root: path.join(__dirname, 'public'),
-  prefix: '/',
-});
+  prefix: '/'
+}).register(require('@fastify/formbody'))
+  .register(require('@fastify/view'), {
+    engine: {
+      handlebars: require('handlebars')
+    },
+    root: path.join(__dirname, 'src/pages')
+  });
 
-// Formbody for parsing incoming forms
-fastify.register(require('@fastify/formbody'));
-
-// View engine setup
-fastify.register(require('@fastify/view'), {
-  engine: {
-    handlebars: require('handlebars'),
-  },
-  root: path.join(__dirname, 'src/pages'), // Set the root path for your templates
-});
-
-// Load SEO data
 const seo = require('./src/seo.json');
 if (seo.url === 'glitch-default') {
   seo.url = `https://${process.env.PROJECT_DOMAIN}.glitch.me`;
 }
 
-// Define a wakeup route
-fastify.get('/wakeup', function (request, reply) {
-  reply.send('Waking up...');
+// Routes
+fastify.get('/wakeup', async (req, reply) => reply.send('Waking up...'));
+fastify.get('/', async (req, reply) => reply.view('/src/pages/index.hbs', { seo }));
+
+fastify.get('/login', async (req, reply) => {
+  const scopes = ['user-read-private', 'user-read-email', 'user-top-read'];
+  reply.redirect(spotifyApi.createAuthorizeURL(scopes));
 });
 
-// Home page route
-fastify.get('/', function (request, reply) {
-  const params = { seo };
-  reply.view('/src/pages/index.hbs', params);
-});
-
-// POST route for handling form submissions
-fastify.post('/', function (request, reply) {
-  const params = { seo };
-  reply.view('/src/pages/index.hbs', params);
-});
-
-// Spotify API authentication setup
-const SpotifyWebApi = require('spotify-web-api-node');
-const spotifyApi = new SpotifyWebApi({
-  clientId: spotifyClientId,
-  clientSecret: spotifyClientSecret,
-  redirectUri: 'https://xpnplaylist.glitch.me/callback',
-});
-
-// Function to fetch user's profile information and top tracks
-async function fetchSpotifyData(api) {
+fastify.get('/callback', async (req, reply) => {
   try {
-    const me = await getMe(api);
-    const topTracks = await getMyTopTracks(api);
+    if (!req.query.code) throw new Error('No code provided');
+    const data = await spotifyApi.authorizationCodeGrant(req.query.code);
+    spotifyApi.setAccessToken(data.body['access_token']);
+    spotifyApi.setRefreshToken(data.body['refresh_token']);
 
-    return {
+    const [me, topTracks] = await Promise.all([
+      spotifyApi.getMe(),
+      spotifyApi.getMyTopTracks()
+    ]);
+
+    reply.view('/src/pages/index.hbs', {
       name: me.body.display_name,
       topTracks: topTracks.body.items,
-    };
-  } catch (error) {
-    throw error;
-  }
-}
-
-// Spotify login route
-fastify.get('/login', function (request, reply) {
-  const scopes = ['user-read-private', 'user-read-email', 'user-top-read'];
-  const authorizeURL = createAuthorizeURL(spotifyClientId, scopes);
-  reply.redirect(authorizeURL);
-});
-
-// Spotify callback route
-fastify.get('/callback', async function (request, reply) {
-  const { code } = request.query;
-  try {
-    if (!code) {
-      // Handle the case where there's no 'code' query parameter
-      throw new Error('Authorization code not found.');
-    }
-
-    // Exchange the authorization code for access and refresh tokens
-    const data = await authorizationCodeGrant(spotifyApi, code);
-
-    // Set the obtained tokens in the Spotify API object
-    setAccessToken(spotifyApi, data.body['access_token']);
-    setRefreshToken(spotifyApi, data.body['refresh_token']);
-
-    // Fetch user's profile information and top tracks using the new function
-    const spotifyData = await fetchSpotifyData(spotifyApi);
-
-    // Render index.hbs with user data and top tracks
-    reply.view('/src/pages/index.hbs', {
-      name: spotifyData.name,
-      topTracks: spotifyData.topTracks,
-      seo,
+      seo
     });
   } catch (error) {
-    console.error('Error:', error);
-    reply.status(500).send('Error during authentication or data fetching');
+    console.error(error);
+    reply.status(500).send('Authentication error');
   }
 });
 
-// Route to display top tracks
-fastify.get('/top-tracks', async function (request, reply) {
+fastify.get('/top-tracks', async (req, reply) => {
   try {
-    const topTracks = await getMyTopTracks(spotifyApi);
-    const tracks = topTracks.body.items;
-
-    reply.view('nametracks.hbs', { tracks }); // Pass the "tracks" data to the template
+    const topTracks = await spotifyApi.getMyTopTracks();
+    reply.view('nametracks.hbs', { tracks: topTracks.body.items });
   } catch (error) {
-    console.error('Error fetching top tracks:', error);
-    reply.status(500).send('Error fetching or rendering top tracks');
+    console.error(error);
+    reply.status(500).send('Error fetching top tracks');
   }
 });
 
-// Start the server
-fastify.listen({ port: process.env.PORT, host: '0.0.0.0' }, function (err, address) {
+// Start server
+fastify.listen({ port: process.env.PORT, host: '0.0.0.0' }, (err, address) => {
   if (err) {
     console.error(err);
     process.exit(1);
   }
-  console.log(`Your app is listening on ${address}`);
-});
-
-fastify.get('/my-name', function (request, reply) {
-  let params = { name: 'Robert Udell' }; // Replace 'Your Name' with your actual name
-  reply.view('name.hbs', params);
-});
-
-fastify.get('/my-spotify-name', async function (request, reply) {
-  try {
-    const me = await spotifyApi.getMe(); // Fetches the user's profile information.
-    let params = { name: me.body.display_name }; // Gets the display name of the user.
-    reply.view('name.hbs', params); // Renders the name template with the user's display name.
-  } catch (error) {
-    console.error('Error fetching user profile from Spotify:', error);
-    reply.status(500).send('Error fetching user profile from Spotify');
-  }
+  console.log(`Server listening on ${address}`);
 });
