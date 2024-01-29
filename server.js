@@ -38,7 +38,10 @@ fastify.get('/login', async (req, reply) => {
 
 fastify.get('/callback', async (req, reply) => {
   try {
-    if (!req.query.code) throw new Error('No code provided');
+    if (!req.query.code) {
+      throw new Error('No code provided');
+    }
+
     const data = await spotifyApi.authorizationCodeGrant(req.query.code);
     spotifyApi.setAccessToken(data.body['access_token']);
     spotifyApi.setRefreshToken(data.body['refresh_token']);
@@ -48,14 +51,14 @@ fastify.get('/callback', async (req, reply) => {
       spotifyApi.getMyTopTracks()
     ]);
 
-    reply.view('/src/pages/index.hbs', {
+    return reply.view('/src/pages/index.hbs', {
       name: me.body.display_name,
       topTracks: topTracks.body.items,
       seo
     });
   } catch (error) {
     console.error(error);
-    reply.status(500).send('Authentication error');
+    return reply.status(500).send('Authentication error');
   }
 });
 
