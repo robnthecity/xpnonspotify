@@ -1,14 +1,97 @@
 <!-- index.hbs -->
-<form id="dateForm">
-  <label for="date">Enter date (YYYY-MM-DD):</label>
-  <input type="date" id="date" name="date" required>
-  <input type="submit" value="Get Songs">
-</form>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Spotify Playlist</title>
+  <!-- Add any additional head content here (e.g., CSS links) -->
+  <style>
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    th, td {
+      padding: 8px;
+      text-align: left;
+      border-bottom: 1px solid #ddd;
+    }
+    th {
+      background-color: #f2f2f2;
+    }
+    img {
+      width: 50px; /* Adjust as needed */
+      height: auto;
+    }
+    audio {
+      width: 100%; /* Use full width to align with the table */
+    }
+  </style>
+</head>
+<body>
+<header>
+  <!-- Display the user's name if it exists -->
+  {{#if name}}
+    <h1>Welcome, {{name}}!</h1>
+  {{else}}
+    <!-- If we don't have the user's name, show the login link -->
+    <a href="/login">Login with Spotify</a>
+  {{/if}}
+</header>
 
-<script>
-  document.getElementById('dateForm').onsubmit = function(event) {
-    event.preventDefault();
-    var date = document.getElementById('date').value;
-    window.location.href = '/songs/' + date;
-  };
-</script>
+  <!-- Form to enter date and get songs -->
+  <form id="dateForm">
+    <label for="date">Enter date (YYYY-MM-DD):</label>
+    <input type="date" id="date" name="date" required>
+    <input type="submit" value="Get Songs">
+  </form>
+
+  <!-- Display user's top tracks if they exist -->
+  {{#if topTracks}}
+    <h2>Your Top Tracks</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Artist</th>
+          <th>Song</th>
+          <th>Album</th>
+          <th>Image</th>
+          <th>Preview</th>
+        </tr>
+      </thead>
+      <tbody>
+        {{#each topTracks}}
+        <tr>
+          <td>{{this.artists.[0].name}}</td>
+          <td>{{this.name}}</td>
+          <td>{{this.album.name}}</td>
+          <td>
+            {{#if this.album.images.[0].url}}
+              <img src="{{this.album.images.[0].url}}" alt="Album cover">
+            {{/if}}
+          </td>
+          <td width="100">
+            {{#if this.preview_url}}
+              <audio controls>
+                <source src="{{this.preview_url}}" type="audio/mpeg">
+                Your browser does not support the audio element.
+              </audio>
+            {{/if}}
+          </td>
+        </tr>
+        {{/each}}
+      </tbody>
+    </table>
+  {{else}}
+    <p>No top tracks found.</p>
+  {{/if}}
+
+  <!-- Script for handling form submission -->
+  <script>
+    document.getElementById('dateForm').onsubmit = function(event) {
+      event.preventDefault();
+      var date = document.getElementById('date').value;
+      window.location.href = '/songs/' + date;
+    };
+  </script>
+</body>
+</html>
