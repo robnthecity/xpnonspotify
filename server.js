@@ -62,34 +62,12 @@ let seo = {};
 
 // Routes
 fastify.get('/wakeup', async (req, reply) => reply.send('Waking up...'));
-fastify.get('/', async (req, reply) => reply.view('/src/pages/index.hbs', { seo }));
+fastify.get('/', async (req, reply) => reply.view('index.hbs', { seo }));
 
 // POST route for handling form submissions
 fastify.post('/', function (request, reply) {
   let params = { seo: seo };
-  reply.view('/src/pages/index.hbs', params);
-});
-
-// WXPN Playlist Routes
-fastify.get('/songs/:date', async (request, reply) => {
-  const date = request.params.date;
-  const sql = `
-    SELECT songs.artist, songs.song_title, songs.album, songs.image_url, play_history.played_at
-    FROM songs
-    JOIN play_history ON songs.id = play_history.song_id
-    WHERE date(play_history.played_at) = ?
-  `;
-  try {
-    const rows = await new Promise((resolve, reject) => {
-      db.all(sql, [date], (err, rows) => {
-        if (err) reject(err);
-        else resolve(rows);
-      });
-    });
-    reply.send({ data: rows });
-  } catch (err) {
-    reply.status(500).send({ error: err.message });
-  }
+  reply.view('index.hbs', params);
 });
 
 // Start Server
@@ -105,16 +83,20 @@ const startServer = async () => {
 
 startServer();
 
-// Route to handle form submission and fetch songs by date
-fastify.get('/songs', async (request, reply) => {
-  const date = request.query.date; // Get the date from query parameters
+// WXPN Playlist Routes
+fastify.get('/songs/:date', async (request, reply) => {
+  const date = request.params.date;
   const sql = `
-    SELECT songs.artist, songs.song_title, songs.album, songs.image_url, play_history.played_at
-    FROM songs
-    JOIN play_history ON songs.id = play_history.song_id
-    WHERE date(play_history.played_at) = ?
+    SELECT 
+      IFNULL(s.artist, 'Unknown Artist') as artist, 
+      IFNULL(s.song, 'Untitled') as song, 
+      IFNULL(s.album, 'Unknown Album') as album, 
+      s.image, 
+      p.played_at
+    FROM songs s
+    JOIN plays p ON s.id = p.song_id
+    WHERE date(p.played_at) = ?
   `;
-
   try {
     const rows = await new Promise((resolve, reject) => {
       db.all(sql, [date], (err, rows) => {
@@ -122,9 +104,10 @@ fastify.get('/songs', async (request, reply) => {
         else resolve(rows);
       });
     });
-    // Render a template with the songs data or send it directly as JSON
-    reply.view('/src/pages/songs.hbs', { seo, songs: rows, date }); // You need to create a songs.hbs template
+    reply.send({ data: rows });
   } catch (err) {
     reply.status(500).send({ error: err.message });
   }
 });
+
+
