@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>My XPN Day</title>
+</head>
+<body>
+    <h1>My Spotify Name</h1>
+    <p>{{name}}</p>
+    
+    <h2>My Top Tracks</h2>
+    <ul>
+        {{#each topTracks}}
+            <li>{{this.name}} by {{this.artists.[0].name}}</li>
+        {{/each}}
+    </ul>
+   <h2>My XPN Tracks</h2>
+    <ul>
+        {{#each topTracks}}
+            <li>{{this.name}} by {{this.artists.[0].name}}</li>
+        {{/each}}
+    </ul>
+
+    <!-- Static content for troubleshooting -->
+    <p>Page loaded successfully.</p>
+</body>
+</html>
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Song History</title>
+</head>
+<body>
+    <h1>Song History</h1>
+    <input type="date" id="dateInput">
+    <button onclick="loadSongs()">Load Songs</button>
+    <div id="songsContainer"></div>
+
+    <script src="script.js"></script>
+</body>
+</html>
+

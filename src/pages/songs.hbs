@@ -1,0 +1,10 @@
+<!-- songs.hbs -->
+<h2>Songs played on {{date}}</h2>
+<ul>
+  {{#each songs}}
+  <li>
+    <strong>{{song_title}}</strong> by {{artist}} from the album {{album}}
+    <img src="{{image_url}}" alt="Album cover" width="100">
+  </li>
+  {{/each}}
+</ul>

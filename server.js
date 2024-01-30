@@ -10,6 +10,7 @@ import View from '@fastify/view';
 import Handlebars from 'handlebars';
 import SpotifyWebApi from 'spotify-web-api-node';
 import sqlite3 from 'sqlite3';
+import spotifyRoutes from './spotifyRoutes.js'
 
 // Initialize dotenv
 dotenv.config();
@@ -20,12 +21,8 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 // Initialize Fastify
 const fastify = Fastify({ logger: true });
 
-// Initialize Spotify API client
-const spotifyApi = new SpotifyWebApi({
-  clientId: process.env.SPOTIFY_CLIENT_ID,
-  clientSecret: process.env.SPOTIFY_CLIENT_SECRET,
-  redirectUri: 'https://xpnplaylist.glitch.me/callback'
-});
+// Register Spotify routes
+fastify.register(spotifyRoutes);
 
 // Database Connection
 const dbPath = join(__dirname, 'xpn_playlists.db');
@@ -73,55 +70,6 @@ fastify.post('/', function (request, reply) {
   reply.view('/src/pages/index.hbs', params);
 });
 
-// Spotify login route
-fastify.get('/login', function (request, reply) {
-  const scopes = ['user-read-private', 'user-read-email', 'user-top-read'];
-  const authorizeURL = spotifyApi.createAuthorizeURL(scopes);
-  reply.redirect(authorizeURL);
-});
-
-// Spotify callback route
-fastify.get('/callback', async function (request, reply) {
-    const { code } = request.query;
-    console.log('Authorization code:', code);
-    try {
-        const data = await spotifyApi.authorizationCodeGrant(code);
-        console.log('Access Token:', data.body['access_token']);
-        console.log('Refresh Token:', data.body['refresh_token']);
-
-        spotifyApi.setAccessToken(data.body['access_token']);
-        spotifyApi.setRefreshToken(data.body['refresh_token']);
-
-        const [me, topTracks] = await Promise.all([
-            spotifyApi.getMe(),
-            spotifyApi.getMyTopTracks()
-        ]);
-
-        return reply.view('index.hbs', {
-            name: me.body.display_name,
-            topTracks: topTracks.body.items,
-            seo
-        });
-    } catch (error) {
-        console.error('Error in Spotify callback:', error);
-        reply.status(500).send('Error during Spotify callback');
-    }
-});
-
-
-// Route to display top tracks
-fastify.get('/top-tracks', async function (request, reply) {
-    try {
-        const topTracks = await spotifyApi.getMyTopTracks();
-        let tracks = topTracks.body.items;
-
-        reply.view('top-tracks.hbs', { tracks });
-    } catch (error) {
-        console.error('Error fetching top tracks:', error);
-        reply.status(500).send('Error fetching or rendering top tracks');
-    }
-});
-
 // WXPN Playlist Routes
 fastify.get('/songs/:date', async (request, reply) => {
   const date = request.params.date;
@@ -156,3 +104,27 @@ const startServer = async () => {
 };
 
 startServer();
+
+// Route to handle form submission and fetch songs by date
+fastify.get('/songs', async (request, reply) => {
+  const date = request.query.date; // Get the date from query parameters
+  const sql = `
+    SELECT songs.artist, songs.song_title, songs.album, songs.image_url, play_history.played_at
+    FROM songs
+    JOIN play_history ON songs.id = play_history.song_id
+    WHERE date(play_history.played_at) = ?
+  `;
+
+  try {
+    const rows = await new Promise((resolve, reject) => {
+      db.all(sql, [date], (err, rows) => {
+        if (err) reject(err);
+        else resolve(rows);
+      });
+    });
+    // Render a template with the songs data or send it directly as JSON
+    reply.view('/src/pages/songs.hbs', { seo, songs: rows, date }); // You need to create a songs.hbs template
+  } catch (err) {
+    reply.status(500).send({ error: err.message });
+  }
+});

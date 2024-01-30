@@ -1,20 +1,6 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>My Spotify Profile</title>
-</head>
-<body>
-    <h1>My Spotify Name</h1>
-    <p>{{name}}</p>
-    
-    <h2>My Top Tracks</h2>
-    <ul>
-        {{#each topTracks}}
-            <li>{{this.name}} by {{this.artists.[0].name}}</li>
-        {{/each}}
-    </ul>
-
-    <!-- Static content for troubleshooting -->
-    <p>Page loaded successfully.</p>
-</body>
-</html>
+<!-- index.hbs -->
+<form action="/songs" method="get">
+  <label for="date">Enter date (YYYY-MM-DD):</label>
+  <input type="date" id="date" name="date" required>
+  <input type="submit" value="Get Songs">
+</form>
