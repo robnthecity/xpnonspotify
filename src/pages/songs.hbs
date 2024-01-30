@@ -1,10 +1,62 @@
+<html>
+  <head>
+    <style>
+  table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  th, td {
+    padding: 8px;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+  }
+  th {
+    background-color: #f2f2f2;
+  }
+  img {
+    width: 50px; /* Adjust as needed */
+    height: auto;
+  }
+  audio {
+    width: 100%; /* Use full width to align with the table */
+  }
+</style>
+
+  </head>
+</html>
 <!-- songs.hbs -->
 <h2>Songs played on {{date}}</h2>
-<ul>
-  {{#each songs}}
-  <li>
-    <strong>{{song_title}}</strong> by {{artist}} from the album {{album}}
-    <img src="{{image_url}}" alt="Album cover" width="100">
-  </li>
-  {{/each}}
-</ul>
+
+{{#if songs.length}}
+  <table>
+    <thead>
+      <tr>
+        <th>Artist</th>
+        <th>Song</th>
+        <th>Album</th>
+        <th>Played At</th>
+        <th>Image</th>
+        <th>Preview</th>
+      </tr>
+    </thead>
+    <tbody>
+      {{#each songs}}
+        <tr>
+          <td>{{artist}}</td>
+          <td>{{song}}</td>
+          <td>{{album}}</td>
+          <td>{{formatTime played_at}}</td>
+          <td><img src="{{image}}" alt="{{song}}" width="100"></td>
+          <td width="100">
+            <audio controls>
+              <source src="{{streamPreview}}" type="audio/mpeg">
+              Your browser does not support the audio element.
+            </audio>
+          </td>
+        </tr>
+      {{/each}}
+    </tbody>
+  </table>
+{{else}}
+  <p>No songs found for this date.</p>
+{{/if}}

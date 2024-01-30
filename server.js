@@ -46,6 +46,11 @@ fastify.register(Static, {
     root: join(__dirname, 'src/pages')
   });
 
+Handlebars.registerHelper('formatTime', (timestamp) => {
+  const date = new Date(timestamp);
+  return `${date.getHours()}:${date.getMinutes().toString().padStart(2, '0')}`;
+});
+
 // Import SEO Configuration
 let seo = {};
 
@@ -84,6 +89,7 @@ const startServer = async () => {
 startServer();
 
 // WXPN Playlist Routes
+// WXPN Playlist Routes
 fastify.get('/songs/:date', async (request, reply) => {
   const date = request.params.date;
   const sql = `
@@ -91,7 +97,8 @@ fastify.get('/songs/:date', async (request, reply) => {
       IFNULL(s.artist, 'Unknown Artist') as artist, 
       IFNULL(s.song, 'Untitled') as song, 
       IFNULL(s.album, 'Unknown Album') as album, 
-      s.image, 
+      s.image,
+      s.streamPreview,
       p.played_at
     FROM songs s
     JOIN plays p ON s.id = p.song_id
@@ -100,14 +107,22 @@ fastify.get('/songs/:date', async (request, reply) => {
   try {
     const rows = await new Promise((resolve, reject) => {
       db.all(sql, [date], (err, rows) => {
-        if (err) reject(err);
-        else resolve(rows);
+        if (err) {
+          reject(err);
+          return;
+        }
+        resolve(rows);
       });
     });
-    reply.send({ data: rows });
+    // Render the songs.hbs template with the data
+    return reply.view('songs.hbs', { songs: rows, date }); // Add 'return' here
   } catch (err) {
     reply.status(500).send({ error: err.message });
+    return; // Make sure to return after sending the response
   }
 });
+
+
+
 
 
