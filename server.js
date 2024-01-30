@@ -121,8 +121,3 @@ fastify.get('/songs/:date', async (request, reply) => {
     return; // Make sure to return after sending the response
   }
 });
-
-
-
-
-
