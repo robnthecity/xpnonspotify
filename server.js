@@ -29,7 +29,8 @@ if (seo.url === 'glitch-default') {
 
 // Routes
 fastify.get('/wakeup', async (req, reply) => reply.send('Waking up...'));
-fastify.get('/', async (req, reply) => reply.view('/src/pages/index.hbs', { seo }));
+// Serve the homepage using the view plugin's configured root directory
+fastify.get('/', async (req, reply) => reply.view('index.hbs', { seo }));
 
 fastify.get('/login', async (req, reply) => {
   const scopes = ['user-read-private', 'user-read-email', 'user-top-read'];
