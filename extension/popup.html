@@ -1,0 +1,31 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>WXPN to Spotify</title>
+    <link rel="stylesheet" href="popup.css" />
+  </head>
+  <body>
+    <h1>WXPN → Spotify</h1>
+    <p class="small">Connect Spotify and choose the playlist that will receive tracks from xpn.org.</p>
+
+    <div class="section">
+      <label for="backendBaseUrl">Backend URL</label>
+      <input id="backendBaseUrl" type="text" placeholder="http://localhost:3000" />
+    </div>
+
+    <div class="section">
+      <label for="playlistId">Spotify Playlist ID</label>
+      <input id="playlistId" type="text" placeholder="Your target playlist ID" />
+    </div>
+
+    <div class="actions">
+      <button id="saveSettings">Save Settings</button>
+      <button id="startLogin">Connect Spotify</button>
+    </div>
+
+    <div id="status" class="status">Checking Spotify session…</div>
+
+    <script src="popup.js"></script>
+  </body>
+</html>
