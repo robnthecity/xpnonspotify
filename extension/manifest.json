@@ -1,0 +1,28 @@
+{
+  "manifest_version": 3,
+  "name": "WXPN Playlist to Spotify",
+  "version": "1.0.0",
+  "description": "Send tracks from the WXPN playlist page to a Spotify playlist.",
+  "permissions": [
+    "storage"
+  ],
+  "host_permissions": [
+    "https://xpn.org/wxpn-playlists/*",
+    "http://*/*",
+    "https://*/*"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://xpn.org/wxpn-playlists/*"],
+      "js": ["contentScript.js"],
+      "css": ["contentStyles.css"]
+    }
+  ],
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "Send WXPN songs to Spotify"
+  }
+}

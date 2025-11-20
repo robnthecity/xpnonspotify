@@ -6,6 +6,17 @@ This project includes a Node.js server script and a web page that connects to it
 
 _Last updated: 14 August 2023_
 
+## WXPN Playlist → Spotify Chrome extension
+
+This repo now includes an `extension/` folder with a Manifest V3 Chrome extension that decorates <https://xpn.org/wxpn-playlists/> with **Add to Spotify** buttons. The buttons post tracks to the server in this project, which forwards them into a Spotify playlist.
+
+**Setup**
+1. Configure environment variables `SPOTIFY_CLIENT_ID`, `SPOTIFY_CLIENT_SECRET`, `SPOTIFY_REDIRECT_URI` (default is `http://localhost:3000/callback`), and either set `SPOTIFY_PLAYLIST_ID` or plan to paste a playlist ID into the extension popup.
+2. Start the server with `npm start`.
+3. In Chrome, open **chrome://extensions** → **Load unpacked** and select the `extension` directory.
+4. Open the popup to set the backend URL (for local development use `http://localhost:3000`), choose your playlist ID, and click **Connect Spotify**. After authenticating, visit the WXPN playlist page to add tracks directly.
+
+
 ## Prerequisites
 
 You'll get best use out of this project if you're familiar with basic JavaScript. If you've written JavaScript for client-side web pages this is a little different because it uses server-side JS, but the syntax is the same!

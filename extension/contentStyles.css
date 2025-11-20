@@ -1,0 +1,49 @@
+.xpn-spotify-add-button {
+  margin-left: 10px;
+  padding: 6px 10px;
+  background: #1db954;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+}
+
+.xpn-spotify-add-button:hover {
+  background: #159741;
+}
+
+.xpn-spotify-row {
+  position: relative;
+}
+
+.xpn-spotify-toast {
+  position: fixed;
+  right: 16px;
+  bottom: 16px;
+  padding: 12px 16px;
+  color: #fff;
+  background: #333;
+  border-radius: 6px;
+  opacity: 0;
+  transition: opacity 0.3s ease, transform 0.3s ease;
+  transform: translateY(10px);
+  z-index: 9999;
+}
+
+.xpn-spotify-toast.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.xpn-spotify-toast-success {
+  background: #1db954;
+}
+
+.xpn-spotify-toast-error {
+  background: #c0392b;
+}
+
+.xpn-spotify-toast-info {
+  background: #2980b9;
+}
